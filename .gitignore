@@ -1,0 +1,14 @@
+*~
+~*
+*.asv
+*.tmp
+*.mat
+*.db
+*.pdf
+*#
+__pycache__/
+graphs/
+checkpoints/
+Data/
+Docs/
+*.ckpt
