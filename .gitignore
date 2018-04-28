@@ -6,6 +6,9 @@
 *.db
 *.pdf
 *#
+*.jpg
+*.jpeg
+*.png
 __pycache__/
 graphs/
 checkpoints/
