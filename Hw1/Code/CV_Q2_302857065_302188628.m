@@ -1,4 +1,10 @@
 %%
+% CV HW1
+% Orr Avrech 302857065
+% Opher Bar Nathan 302188628
+
+
+%%
 
 clear ; close all ; clc ;
 
@@ -9,6 +15,7 @@ clear ; close all ; clc ;
 %% edge detectors parameters
 %  tune parameters for each image
 %  [ Pandas ; Faces ; Man Graffiti ]
+% NOTE: All the images are in the folder "images".
 
 sobel_TH = [ 0.17 ; 0.21 ; 0.15 ];
 
@@ -26,7 +33,8 @@ Nimage = length(selected_images);
 
 for imIter = 1:Nimage
     
-    im =  im2double(rgb2gray(imread([ selected_images{imIter} '.jpg' ])));
+    % NOTE: All the images are in the folder "images".
+    im =  im2double(rgb2gray(imread([ 'images\' selected_images{imIter} '.jpg' ])));    
  
     sobel_im = edge(im,'Sobel',...                  % BW = edge(I,method,TH,direction)
         sobel_TH(imIter),'both');                            
