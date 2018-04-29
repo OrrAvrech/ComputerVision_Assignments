@@ -21,13 +21,11 @@ canny_sigma = [ 2 ; 2 ; 2 ];
 
 %% Showing the results for each image, with the global parameters above
 
-% path = 'D:\GoogleDrive\STUDIES\Semester 9\Computer vision\HW\HW1\PICsOpher';
 selected_images = { 'pandas' ; 'faces' ; 'man graffiti' };
 Nimage = length(selected_images);
 
 for imIter = 1:Nimage
     
-%     im =  im2double(rgb2gray(imread([ path '\' selected_images{imIter} '.jpg' ])));
     im =  im2double(rgb2gray(imread([ selected_images{imIter} '.jpg' ])));
  
     sobel_im = edge(im,'Sobel',...                  % BW = edge(I,method,TH,direction)
@@ -72,7 +70,6 @@ clear ; close all ; clc ;
 
 %% Data mining
 
-% path = 'D:\GoogleDrive\STUDIES\Semester 9\Computer vision\HW\HW1\edges_images_GT';
 given_images = {'Church' ; 'Golf' ; 'Nuns'};
 Nimage = length(given_images);
 
@@ -88,9 +85,6 @@ canny_sigma = 1.5;
 
 for imIter = 1:Nimage
     
-%     im =  im2double(imread([ path '\' given_images{imIter} '.jpg' ]));
-%     im_GT =  imread([ path '\' given_images{imIter} '_GT.bmp' ]);
-
     im =  im2double(imread([ 'edges_images_GT\' given_images{imIter} '.jpg' ]));
     im_GT =  imread([ 'edges_images_GT\' given_images{imIter} '_GT.bmp' ]);
 
@@ -111,8 +105,8 @@ for imIter = 1:Nimage
 
             intersection = and(Edge_im,im_GT);
 
-            Percision = sum(sum(intersection)) / (eps+sum(sum(Edge_im)));
-            Recall =  sum(sum(intersection)) / (eps+sum(sum(im_GT)));
+            Percision = sum(sum(intersection)) / (eps+sum(sum(im_GT)));
+            Recall =  sum(sum(intersection)) / (eps+sum(sum(Edge_im)));
             F = 2*Percision*Recall / (Percision + Recall + eps);
 
             Res.(Methods{meIter}).Precesion.(given_images{imIter})(thIter) = Percision ;
