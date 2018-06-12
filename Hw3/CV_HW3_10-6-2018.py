@@ -388,17 +388,12 @@ def find_affine_trans_parameters(img_pts_ref,img_pts_trg):
     
     ones = np.asarray([np.ones(np.shape(img_pts_ref)[0]).astype('int')])
     
-    M = np.concatenate((img_pts_ref, ones.T), axis=1)
+    a = np.concatenate((img_pts_ref, ones.T), axis=1)
+    b = np.concatenate((img_pts_trg, ones.T), axis=1)
     
-    AB ,residuals ,rank ,s = np.linalg.lstsq(M, img_pts_trg)
-    
-    A = AB[0:2,0:2].T
-    B = AB[2,:].T
-    
-    BigMarix = np.concatenate((AB.T,np.array([[0, 0, 1]])), axis=0)
-    
-    return A,B,BigMarix
-
+    M ,residuals ,rank ,s = np.linalg.lstsq(a, b)
+        
+    return M
 
 affine_mat = list()
 affine_bias = list()
@@ -406,13 +401,8 @@ affine_BigMatrix = list()
 img_pts_ref = selected_fetures_dot[0]
 
 for frameItr in np.arange(Nimages):
-    A_tmp,B_tmp,BigMarix_tmp = find_affine_trans_parameters(img_pts_ref,selected_fetures_dot[frameItr])
-    affine_mat.append(A_tmp)
-    affine_bias.append(B_tmp)
-    affine_BigMatrix.append(BigMarix_tmp)
-    
-    
-    
+    BigMatrix_tmp = find_affine_trans_parameters(img_pts_ref,selected_fetures_dot[frameItr])
+    affine_BigMatrix.append(BigMatrix_tmp)
     
 #%%
 # =============================================================================
@@ -435,11 +425,15 @@ xmesh , ymesh = np.meshgrid(np.arange(height), np.arange(width))
 xmesh_flat = xmesh.flatten()
 ymesh_flat = ymesh.flatten()
 ones_vec = np.ones(np.shape(xmesh_flat)[0])
-source_coordinates = np.stack((xmesh_flat, ymesh_flat, ones_vec),axis=0)
+source_coordinates = np.stack((xmesh_flat, ymesh_flat, ones_vec), axis=0)
 
 stablized_coordinates = np.matmul(bigMat_inv, source_coordinates)
+rsc = np.round(stablized_coordinates).astype('int')
+rsc[0, :] = (rsc[0, :] + np.absolute(np.min(rsc[0, :])))
+rsc[1, :] = rsc[1, :] + np.absolute(np.min(rsc[1, :]))
 
 img_zero = np.zeros(np.shape(img))
+img_zero[xmesh_flat, ymesh_flat, :] = img[rsc[0,:], rsc[1,:], :]
 
 #==============================================================================
 # img_vec = np.concatenate(img)
