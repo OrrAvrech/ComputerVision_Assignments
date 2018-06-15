@@ -315,8 +315,8 @@ def find_affine_trans_parameters(img_pts_ref,img_pts_trg):
     
     ones = np.asarray([np.ones(np.shape(img_pts_ref)[0]).astype('int')])
     
-    a = np.concatenate((img_pts_ref, ones.T), axis=1)
-    b = np.concatenate((img_pts_trg, ones.T), axis=1)
+    b = np.concatenate((img_pts_ref, ones.T), axis=1)
+    a = np.concatenate((img_pts_trg, ones.T), axis=1)
     
     M ,residuals ,rank ,s = np.linalg.lstsq(a, b, rcond=None)
     M[M < 1e-10] = 0
@@ -328,7 +328,7 @@ affine_adjacentMatrix = list()
 img_pts_ref = selected_fetures_dot[0]
 
 for frameItr in np.arange(Nimages):
-    refMatrix_tmp = find_affine_trans_parameters(img_pts_ref,selected_fetures_dot[frameItr])
+    refMatrix_tmp = find_affine_trans_parameters(img_pts_ref, selected_fetures_dot[frameItr])
     affine_refMatrix.append(refMatrix_tmp)
     if frameItr == 0:
         adjacentMatrix_tmp = find_affine_trans_parameters(selected_fetures_dot[frameItr], selected_fetures_dot[frameItr])
@@ -343,6 +343,8 @@ for frameItr in np.arange(Nimages):
 
 def MatrixCumMul(matrixList, iteration):
     res = np.zeros(np.shape(matrixList[0]))
+    if iteration == 0:
+        res = matrixList[0]
     for ii in range(iteration):
         if ii == 0:
             res = matrixList[ii]
@@ -366,8 +368,8 @@ for frameItr in np.arange(Nimages):
     dstAdjc = cv2.warpAffine(img, Madjc[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
     frameListAdjc.append(dstAdjc)
 
-plot_frame_list(frameListRef, 0.1)
-#plot_frame_list(frameListAdjc, 0.1)
+plot_frame_list(frameListRef, 0.3)
+plot_frame_list(frameListAdjc, 0.3)
 
 #bigMat_inv = np.linalg.inv(affine_BigMatrix[frameNum])
 #xmesh , ymesh = np.meshgrid(np.arange(height), np.arange(width))
