@@ -16,19 +16,15 @@ Created on Sat Jun  2 14:43:18 2018
 
 
 #%%
-
 # =============================================================================
 # import relevant packages
 # =============================================================================
-
 import cv2
 import numpy as np
 import os
 
 from matplotlib import pyplot as plt
 import pylab as pl
-
-from scipy import interpolate
 
 #%%
 
@@ -57,71 +53,40 @@ frames_jump = frames[0:-1:30]
 frames_jump = frames_jump [0:6]
 
 #%%
-
-# NOT WORKS #
-
 # =============================================================================
 # 1. Viewing. 
 # For all the frames
 # =============================================================================
-    
+
 # =============================================================================
-# time_between_frames = 0.05
-# img = None
-# for f in frames:
-#     im = pl.imread(os.path.join(frames_path,f))
-#     if img is None:
-#         img = pl.imshow(im)
-#     else:
-#         img.set_data(im)
-#     pl.pause(time_between_frames)
-#     pl.draw()
+# Plot Sequence Function
 # =============================================================================
+
+def plot_read_sequence(frame_list, pause_time):
+    plt.figure()
+    for f in frame_list:
+        plt.clf()
+        im = cv2.imread(os.path.join(frames_path,f))
+        imRGB = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        plt.imshow(imRGB)
+        pl.pause(pause_time)
+        
+def plot_frame_list(frame_list, pause_time):
+    plt.figure()
+    for f in frame_list:
+        plt.clf()
+        imRGB = cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
+        plt.imshow(imRGB)
+        pl.pause(pause_time)
+
+plot_read_sequence(frames_jump, 0.05)
 
 #%%
-
-# =============================================================================
-# 1. Viewing. 
-# For 6 frames
-# =============================================================================
-
-# =============================================================================
-# Nimages = 6
-# 
-# im = pl.imread(os.path.join(frames_path,frames_jump[0]))
-# hight, width, chanel = np.shape(im)
-# dim = [Nimages,hight, width, chanel]
-# images = np.zeros(dim)
-# 
-# for Iter in np.arange(Nimages):
-#     images[Iter,:,:,:] = pl.imread(os.path.join(frames_path,frames_jump[Iter]))
-#     
-# for Iter in np.arange(Nimages):   
-#     img = pl.imshow(images[Iter,:,:,:])
-#     pl.pause(time_between_frames)
-#     pl.draw()
-# 
-# # =============================================================================
-# # OR:
-# # =============================================================================
-# 
-# 
-# for f in frames_jump:
-#     im = pl.imread(os.path.join(frames_path,f))
-#     img = pl.imshow(im)
-#     pl.pause(time_between_frames)
-#     pl.draw()
-# =============================================================================
-
-#%%
-
-# =============================================================================
+# ============================================================================
 # 2. Detection.
 # Harris corner detection
 # =============================================================================
-
-
-#%% 
+ 
 # =============================================================================
 #     NON-Maximum Suprassion
 # =============================================================================
@@ -182,10 +147,17 @@ def non_max_suppression_fast(boxes, overlapThresh):
 	# integer data type
 	return boxes[pick].astype("int")
 
+# =============================================================================
+# Box to Dot
+# =============================================================================
+
 def from_box_to_dot(a):
     return round((a[0]+a[2])/2), round((a[1]+a[3])/2)
 
-#%%
+# =============================================================================
+# Detect Corners 
+# =============================================================================
+
 Nimages = len(frames_jump)
 TH_par = 0.005
 
@@ -262,58 +234,13 @@ for frameItr in range(Nimages):
     if frameItr == 0:
         img_harris_boxes_nms_ref = img_harris_boxes_nms.copy()
         
-    im_to_show = cv2.resize(img_harris_boxes_nms, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-#    cv2.imshow("NMS Harris - " + frames_jump[frameItr] , im_to_show)
+    im_resized = cv2.resize(img_harris_boxes_nms, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
+    im_to_show = cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB)
     plt.figure()
     plt.imshow(im_to_show)
     plt.show()
 
-# =============================================================================
-#==============================================================================
-#     if frameItr == 0:
-#      
-#          img_harris_boxes_nms_ref = img_harris_boxes_nms.copy()
-#          im_to_show_ref = cv2.resize(img_harris_boxes_nms_ref, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-#      
-#          cv2.imshow("NMS Harris - Ref Frame - " + frames_jump[frameItr] , im_to_show_ref)
-#     
-#     if frameItr != 0:
-#          im_to_show = cv2.resize(img_harris_boxes_nms, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-#          numpy_horizontal  = np.hstack((im_to_show_ref, im_to_show))
-#      #        numpy_horizontal_concat = np.concatenate((img_harris_boxes_nms_ref, im_to_show), axis=0)
-#          cv2.imshow("NMS Harris - Ref Frame and " + frames_jump[frameItr] , numpy_horizontal)
-#==============================================================================
-# =============================================================================
-
-#==============================================================================
-# cv2.imshow("NMS Harris - Ref Framesdfsdf - " + frames_jump[frameItr] , img_harris_boxes)
-# cv2.imshow("NMS Harris - Ref Frame - " + frames_jump[frameItr] , img_harris_boxes_nms)      
-#==============================================================================
-
-          
-#cv2.waitKey(0) 
-
- 
-#%% Temporal here - for future use!
-    
-# =============================================================================
-# if frameItr == 0:
-#     
-#     img_harris_boxes_nms_ref = img_harris_boxes_nms.copy()
-#     im_to_show_ref = cv2.resize(img_harris_boxes_nms_ref, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-#     
-#     cv2.imshow("NMS Harris - Ref Frame - " + frames_jump[frameItr] , im_to_show_ref)
-#    
-# if frameItr != 0:
-#     im_to_show = cv2.resize(img_harris_boxes_nms, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-#     numpy_horizontal  = np.hstack((im_to_show_ref, im_to_show))
-# #        numpy_horizontal_concat = np.concatenate((img_harris_boxes_nms_ref, im_to_show), axis=0)
-#     cv2.imshow("NMS Harris - Ref Frame and " + frames_jump[frameItr] , numpy_horizontal)
-# =============================================================================
-    
-
 #%%
-
 # =============================================================================
 # 3. Manual Matching
 # we chose features on the filmed object, not in the background 
@@ -374,12 +301,12 @@ for frameItr in range(Nimages):
     X, Y = selected_fetures_dot[frameItr][7]
     cv2.circle(img_manual_match, (Y, X), 10, (0, 255, 255), 3)
     
-    
-#    cv2.imshow("slected manualy features " + frames_jump[frameItr],img_manual_match)
-
+    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
+    plt.figure()
+    plt.imshow(im_to_show)
+    plt.show()
 
 #%%
-    
 # =============================================================================
 # 4. Transformation 
 #    find affine transformation parametrs with Least squre method
@@ -391,99 +318,74 @@ def find_affine_trans_parameters(img_pts_ref,img_pts_trg):
     a = np.concatenate((img_pts_ref, ones.T), axis=1)
     b = np.concatenate((img_pts_trg, ones.T), axis=1)
     
-    M ,residuals ,rank ,s = np.linalg.lstsq(a, b)
+    M ,residuals ,rank ,s = np.linalg.lstsq(a, b, rcond=None)
+    M[M < 1e-10] = 0
         
-    return M
+    return M.T
 
-affine_mat = list()
-affine_bias = list()
-affine_BigMatrix = list()
+affine_refMatrix = list()
+affine_adjacentMatrix = list()
 img_pts_ref = selected_fetures_dot[0]
 
 for frameItr in np.arange(Nimages):
-    BigMatrix_tmp = find_affine_trans_parameters(img_pts_ref,selected_fetures_dot[frameItr])
-    affine_BigMatrix.append(BigMatrix_tmp)
+    refMatrix_tmp = find_affine_trans_parameters(img_pts_ref,selected_fetures_dot[frameItr])
+    affine_refMatrix.append(refMatrix_tmp)
+    if frameItr == 0:
+        adjacentMatrix_tmp = find_affine_trans_parameters(selected_fetures_dot[frameItr], selected_fetures_dot[frameItr])
+    else:
+        adjacentMatrix_tmp = find_affine_trans_parameters(selected_fetures_dot[frameItr-1], selected_fetures_dot[frameItr])
+    affine_adjacentMatrix.append(adjacentMatrix_tmp)
     
 #%%
 # =============================================================================
 # 5. Stabilization
 # =============================================================================
 
-#for frameItr
-
-frameNum = 5
-
-bigMat_inv = np.linalg.inv(affine_BigMatrix[frameNum])
-frame_path = os.path.join(frames_path,frames_jump[frameNum])
-img = cv2.imread(frame_path)
+def MatrixCumMul(matrixList, iteration):
+    res = np.zeros(np.shape(matrixList[0]))
+    for ii in range(iteration):
+        if ii == 0:
+            res = matrixList[ii]
+        else:
+            res = np.matmul(res, matrixList[ii])
+    
+    return res
 
 height, width, channel = np.shape(img)
-height_vec = np.arange(height)
-weidth_vec = np.arange(width)
+frameListRef = list()
+frameListAdjc = list()
+for frameItr in np.arange(Nimages):
+    frame_path = os.path.join(frames_path,frames_jump[frameItr])
+    img = cv2.imread(frame_path)
+    
+    Mref = affine_refMatrix[frameItr]
+    dstRef = cv2.warpAffine(img, Mref[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
+    frameListRef.append(dstRef)
+    
+    Madjc = MatrixCumMul(affine_adjacentMatrix, frameItr)
+    dstAdjc = cv2.warpAffine(img, Madjc[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
+    frameListAdjc.append(dstAdjc)
 
-xmesh , ymesh = np.meshgrid(np.arange(height), np.arange(width))
-xmesh_flat = xmesh.flatten()
-ymesh_flat = ymesh.flatten()
-ones_vec = np.ones(np.shape(xmesh_flat)[0])
-source_coordinates = np.stack((xmesh_flat, ymesh_flat, ones_vec), axis=0)
+plot_frame_list(frameListRef, 0.1)
+#plot_frame_list(frameListAdjc, 0.1)
 
-stablized_coordinates = np.matmul(bigMat_inv, source_coordinates)
-rsc = np.round(stablized_coordinates).astype('int')
-rsc[0, :] = (rsc[0, :] + np.absolute(np.min(rsc[0, :])))
-rsc[1, :] = rsc[1, :] + np.absolute(np.min(rsc[1, :]))
-
-img_zero = np.zeros(np.shape(img))
-img_zero[xmesh_flat, ymesh_flat, :] = img[rsc[0,:], rsc[1,:], :]
-
-#==============================================================================
-# img_vec = np.concatenate(img)
-# img_vec = img_vec.T
-# yy_vec_1280 = yy_vec*1280
-# max(yy_vec_1280)
-# r = interpolate.interp2d(xx_vec,yy_vec, img_vec[0,:], kind='linear')
-# g = interpolate.interp2d(xx_vec,yy_vec, img[:,:,1], kind='linear')
-# b = interpolate.interp2d(xx_vec,yy_vec, img[:,:,2], kind='linear')
-# 
-# R = r(xs,ys).astype('int')
-# G = g(xs,ys).astype('int')
-# B = b(xs,ys).astype('int')
-# 
-# img_zero[:,:,0] = R
-# img_zero[:,:,1] = G
-# img_zero[:,:,2] = B
-# 
-# img_stabilized = np.array(img_zero,dtype=np.uint8)
-# 
-# im_show_proportion = 0.5
-# 
-# img_source_to_show = cv2.resize(img, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-# im_stabilized_to_show = cv2.resize(img_stabilized, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-# numpy_horizontal  = np.hstack((img_source_to_show, im_stabilized_to_show))
-# cv2.imshow("Source and Stabilized Image" , numpy_horizontal)
-#==============================================================================
-
-r = interpolate.interp2d(source_coordinates[0, :], source_coordinates[1, :], img[:,:,0], kind='linear')
-g = interpolate.interp2d(width_vec,hight_vec, img[:,:,1], kind='linear')
-b = interpolate.interp2d(width_vec,hight_vec, img[:,:,2], kind='linear')
-
-R = r(xs,ys).astype('int')
-G = g(xs,ys).astype('int')
-B = b(xs,ys).astype('int')
-
-img_zero[:,:,0] = R
-img_zero[:,:,1] = G
-img_zero[:,:,2] = B
-
-img_stabilized = np.array(img_zero,dtype=np.uint8)
-
-im_show_proportion = 0.5
-
-img_source_to_show = cv2.resize(img, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-im_stabilized_to_show = cv2.resize(img_stabilized, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
-numpy_horizontal  = np.hstack((img_source_to_show, im_stabilized_to_show))
-#cv2.imshow("Source and Stabilized Image" , numpy_horizontal)
-
-
+#bigMat_inv = np.linalg.inv(affine_BigMatrix[frameNum])
+#xmesh , ymesh = np.meshgrid(np.arange(height), np.arange(width))
+#xmesh_flat = xmesh.flatten()
+#ymesh_flat = ymesh.flatten()
+#ones_vec = np.ones(np.shape(xmesh_flat)[0])
+#source_coordinates = np.stack((xmesh_flat, ymesh_flat, ones_vec), axis=0)
+#
+#stablized_coordinates = np.matmul(bigMat_inv, source_coordinates)
+#
+#r = np.zeros((width,))
+#g = np.zeros((width,))
+#b = np.zeros((width,))
+## interp2d
+#for i in range(width):
+#    r[i] = interpolate.interp2d(stablized_coordinates[0, height*i : height*(i+1)], stablized_coordinates[1, height*i : height*(i+1)], img[:,i,0], kind='linear')
+#    g[i] = interpolate.interp2d(stablized_coordinates[0, height*i : height*(i+1)], stablized_coordinates[1, :height*i : height*(i+1)], img[:,i,1], kind='linear')
+#    b[i] = interpolate.interp2d(stablized_coordinates[0, height*i : height*(i+1)], stablized_coordinates[1, height*i : height*(i+1)], img[:,i,2], kind='linear')
 
 #%%
 # =============================================================================
