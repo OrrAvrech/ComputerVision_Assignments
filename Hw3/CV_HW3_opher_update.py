@@ -24,17 +24,58 @@ import numpy as np
 import os
 
 from matplotlib import pyplot as plt
-import matplotlib.patches as patches
 import pylab as pl
+
+import scipy.ndimage.filters as filters
 
 #%%
 
 Data_dir = os.path.join('.','data')
-seg_object = 'chair'
-doCapture = False # True
+seg_object = 'santa' #'santa'
+doCapture = False # False, True
 
 #%%
-frames_path = os.path.join(Data_dir,'frames')
+
+# =============================================================================
+# in this section the video is captured to frames:
+# =============================================================================
+if doCapture:
+
+    video_name = seg_object + '_video.mp4'
+    video_path = os.path.join(Data_dir,video_name)
+    
+    cap = cv2.VideoCapture(video_path)
+    
+    try:
+        if not os.path.exists(os.path.join(Data_dir,'frames'+'_'+seg_object)):
+            os.makedirs(os.path.join(Data_dir,'frames'+'_'+seg_object))
+        
+    except OSError:
+            print ('Error: Creating directory of data')
+    
+    currentFrame = 0
+    while(True):
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+        
+        if ret == False:
+            break
+    
+        # Saves image of the current frame in jpg file
+        name = 'frame' + str(currentFrame) + '.jpg'
+        frame_path = os.path.join(Data_dir,'frames'+'_'+seg_object,name)
+        
+        print ('Creating...' + name)
+        cv2.imwrite(frame_path, frame)
+        
+        currentFrame += 1
+    
+    # When everything done, release the capture
+    cap.release()
+    cv2.destroyAllWindows()
+
+#%%
+frames_path = os.path.join(Data_dir,'frames'+'_'+seg_object)
 
 frames_num = []
 for frame in os.listdir(frames_path):
@@ -80,7 +121,7 @@ def plot_frame_list(frame_list, pause_time):
         plt.imshow(imRGB)
         pl.pause(pause_time)
 
-plot_read_sequence(frames_jump, 0.05)
+plot_read_sequence(frames_jump, 0.5)
 
 #%%
 # ============================================================================
@@ -160,7 +201,7 @@ def from_box_to_dot(a):
 # =============================================================================
 
 Nimages = len(frames_jump)
-TH_par = 0.005
+TH_par = 0.02 
 
 boxes_nms = list()
 dots_nms = list()
@@ -252,9 +293,9 @@ for frameItr in range(Nimages):
         
     im_resized = cv2.resize(img_harris_boxes_nms, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
     im_to_show = cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB)
-    plt.figure()
-    plt.imshow(im_to_show)
-    plt.show()
+#    plt.figure()
+#    plt.imshow(im_to_show)
+#    plt.show()
 
 #%%
 # =============================================================================
@@ -270,35 +311,20 @@ frame_path = os.path.join(frames_path,frames_jump[0])
 img = cv2.imread(frame_path)
 
 img_manual_match = img.copy()
-# =============================================================================
-# selected_fetures_box.append(boxes_nms[0][[82,63,60,61,62,66,73,68]]) #
-# selected_fetures_box.append(boxes_nms[1][[142,98,93,95,94,109,113,103]])
-# selected_fetures_box.append(boxes_nms[2][[138,105,92,93,89,118,113,103]])#
-# selected_fetures_box.append(boxes_nms[3][[104,78,62,63,61,93,66,45]])
-# selected_fetures_box.append(boxes_nms[4][[142,102,84,82,77,118,67,52]])#
-# selected_fetures_box.append(boxes_nms[5][[121,84,75,72,68,95,59,41]])
-# 
-# selected_fetures_dot.append(dots_nms[0][[82,63,60,61,62,66,73,68]])
-# selected_fetures_dot.append(dots_nms[1][[142,98,93,95,94,109,113,103]])
-# selected_fetures_dot.append(dots_nms[2][[138,105,92,93,89,118,113,103]])
-# selected_fetures_dot.append(dots_nms[3][[104,78,62,63,61,93,66,45]])
-# selected_fetures_dot.append(dots_nms[4][[142,102,84,82,77,118,67,52]])
-# selected_fetures_dot.append(dots_nms[5][[121,84,75,72,68,95,59,41]])
-# =============================================================================
 
-selected_fetures_box.append(boxes_nms[0][[81,62,59,60,61,65,72,67]]) 
-selected_fetures_box.append(boxes_nms[1][[142,98,93,95,94,109,113,103]])
-selected_fetures_box.append(boxes_nms[2][[138,104,91,92,88,117,112,102]])
-selected_fetures_box.append(boxes_nms[3][[104,78,62,63,61,93,66,45]])
-selected_fetures_box.append(boxes_nms[4][[143,103,85,83,78,119,67,52]])
-selected_fetures_box.append(boxes_nms[5][[121,84,75,72,68,95,59,41]])
+selected_fetures_box.append(boxes_nms[0][[38,69,53,75,82,91,100,104]]) 
+selected_fetures_box.append(boxes_nms[1][[37,70,44,74,81,88,94,98]])
+selected_fetures_box.append(boxes_nms[2][[37,70,45,74,87,92,99,102]])
+selected_fetures_box.append(boxes_nms[3][[34,69,48,68,79,83,89,97]])
+selected_fetures_box.append(boxes_nms[4][[35,71,52,78,88,93,104,109]])
+selected_fetures_box.append(boxes_nms[5][[40,69,48,75,84,91,99,103]])
 
-selected_fetures_dot.append(dots_nms[0][[81,62,59,60,61,65,72,67]])
-selected_fetures_dot.append(dots_nms[1][[142,98,93,95,94,109,113,103]])
-selected_fetures_dot.append(dots_nms[2][[138,104,91,92,88,117,112,102]])
-selected_fetures_dot.append(dots_nms[3][[104,78,62,63,61,93,66,45]])
-selected_fetures_dot.append(dots_nms[4][[143,103,85,83,78,119,67,52]])
-selected_fetures_dot.append(dots_nms[5][[121,84,75,72,68,95,59,41]])
+selected_fetures_dot.append(dots_nms[0][[38,69,53,75,82,91,100,104]]) 
+selected_fetures_dot.append(dots_nms[1][[37,70,44,74,81,88,94,98]])
+selected_fetures_dot.append(dots_nms[2][[37,70,45,74,87,92,99,102]])
+selected_fetures_dot.append(dots_nms[3][[34,69,48,68,79,83,89,97]])
+selected_fetures_dot.append(dots_nms[4][[35,71,52,78,88,93,104,109]])
+selected_fetures_dot.append(dots_nms[5][[40,69,48,75,84,91,99,103]])
 
 
 for frameItr in range(Nimages):
@@ -334,10 +360,10 @@ for frameItr in range(Nimages):
     X, Y = selected_fetures_dot[frameItr][7]
     cv2.circle(img_manual_match, (Y, X), 10, (0, 255, 255), 3)
     
-    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
-    plt.figure()
-    plt.imshow(im_to_show)
-    plt.show()
+#    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
+#    plt.figure()
+#    plt.imshow(im_to_show)
+#    plt.show()
 
 #%%
 # =============================================================================
@@ -407,40 +433,41 @@ for frameItr in np.arange(Nimages):
     dstAdjc = cv2.warpAffine(img, Madjc[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
     frameListAdjc.append(dstAdjc)
 
-plot_frame_list(frameListRef, 0.8)
-plot_frame_list(frameListAdjc, 0.8)
+#plot_frame_list(frameListRef, 0.8)
+#plot_frame_list(frameListAdjc, 0.8)
 
 #%%
 # =============================================================================
 # 6. Automatic Matching
 # =============================================================================
 
-L = 400
-W = 20
+L = 1800
+W = 46
 
 frame_path_ref = os.path.join(frames_path,frames_jump[0])
 img_ref = cv2.imread(frame_path)
 
-# padding with white for highr SSD
+# padding for image edges features boxes
 COLOR = [0, 0, 0]
-img_ref_pad = cv2.copyMakeBorder(img,int(W),int(W),int(W),int(W),cv2.BORDER_CONSTANT,value=COLOR)
+img_ref_pad = cv2.copyMakeBorder(img_ref,int(W),int(W),int(W),int(W),cv2.BORDER_CONSTANT,value=COLOR)
 
 features_pts_ref = dots_nms[0]
+
+#create WxW area around feature point
+features_boxes_ref = np.empty((np.shape(features_pts_ref)[0],4))
+
+features_boxes_ref[:,0] = [ii-int(W/2) for ii in features_pts_ref[:,0]] # x_start
+features_boxes_ref[:,1] = [ii-int(W/2) for ii in features_pts_ref[:,1]] # y_start
+features_boxes_ref[:,2] = [ii+int(W/2) for ii in features_pts_ref[:,0]] # x_end
+features_boxes_ref[:,3] = [ii+int(W/2) for ii in features_pts_ref[:,1]] # y_end
+
+#create LxL area around feature point
 feature_L_window_ref = np.zeros(np.multiply([1, 2] ,np.shape(features_pts_ref)))
 
 feature_L_window_ref[:,0] = [(ii-int(L/2) if ii>=int(L/2) else 0) for ii in features_pts_ref[:,0]] # x_start
 feature_L_window_ref[:,1] = [(ii-int(L/2) if ii>=int(L/2) else 0) for ii in features_pts_ref[:,1]] # y_start
 feature_L_window_ref[:,2] = [(ii+int(L/2) if ii<hight-int(L/2) else hight) for ii in features_pts_ref[:,0]] # x_end
 feature_L_window_ref[:,3] = [(ii+int(L/2) if ii<width-int(L/2) else width) for ii in features_pts_ref[:,1]] # y_end
-
-# =============================================================================
-# feature_W_window_ref = np.zeros(np.multiply([1, 2] ,np.shape(features_pts_ref)))
-# 
-# feature_W_window_ref[:,0] = [(ii-int((W/2)-1) if ii>=int((W/2)-1) else 0) for ii in features_pts_ref[:,0]] # x_start
-# feature_W_window_ref[:,1] = [(ii-int((W/2)-1) if ii>=int((W/2)-1) else 0) for ii in features_pts_ref[:,1]] # y_start
-# feature_W_window_ref[:,2] = [(ii+int((W/2)+1) if ii<hight-int((W/2)+1) else hight) for ii in features_pts_ref[:,0]] # x_end
-# feature_W_window_ref[:,3] = [(ii+int((W/2)+1) if ii<width-int((W/2)+1) else width) for ii in features_pts_ref[:,1]] # y_end
-# =============================================================================
 
 
 features_compatable_table = np.empty((np.shape(features_pts_ref)[0],Nimages))
@@ -453,16 +480,24 @@ for frameIter in 1+np.arange(Nimages-1):
     
     frame_path = os.path.join(frames_path,frames_jump[frameIter])
     img_curr_frame = cv2.imread(frame_path)
-    img_curr_frame_pad = cv2.copyMakeBorder(img,int(W),int(W),int(W),int(W),cv2.BORDER_CONSTANT,value=COLOR)
+    
+    img_curr_frame_pad = cv2.copyMakeBorder(img_curr_frame,int(W),int(W),int(W),int(W),cv2.BORDER_CONSTANT,value=COLOR)
     
     curr_frame_features = dots_nms[frameIter]
+    
+    curr_frame_features_box = np.zeros((np.shape(curr_frame_features)[0],4))
+
+    curr_frame_features_box[:,0] = [ii-int(W/2) for ii in curr_frame_features[:,0]] # x_start
+    curr_frame_features_box[:,1] = [ii-int(W/2) for ii in curr_frame_features[:,1]] # y_start
+    curr_frame_features_box[:,2] = [ii+int(W/2) for ii in curr_frame_features[:,0]] # x_end
+    curr_frame_features_box[:,3] = [ii+int(W/2) for ii in curr_frame_features[:,1]] # y_end
+    
     Nfeatures_curr = np.shape(curr_frame_features)[0]
     
     for ref_feature_Iter in np.arange(Nfeatures_Ref):
         
-        startX, startY, endX, endY = feature_L_window_ref[ref_feature_Iter]
-#        start_W_X, start_W_Y, end_W_X, end_W_Y = feature_W_window_ref[ref_feature_Iter]
-        start_W_X, start_W_Y, end_W_X, end_W_Y = boxes_nms[0][ref_feature_Iter,:]
+        startX, startY, endX, endY = feature_L_window_ref[ref_feature_Iter].astype('int')
+        start_W_X, start_W_Y, end_W_X, end_W_Y = features_boxes_ref[ref_feature_Iter,:].astype('int')
         
         curr_featurs_indices = list()
         
@@ -489,13 +524,14 @@ for frameIter in 1+np.arange(Nimages-1):
         
         most_compatable_feature_ind = -1
         min_ssd = -1
-        
+                
         for compareIter in curr_featurs_indices:
             
-            f_start_X, f_start_Y, f_end_X, f_end_Y = boxes_nms[frameIter][compareIter,:]
+            f_start_X, f_start_Y, f_end_X, f_end_Y = curr_frame_features_box[compareIter,:].astype('int')
             curr_frame_window = img_curr_frame_pad[f_start_X+W:f_end_X+W, f_start_Y+W:f_end_Y+W, :]
             
             ssd = np.sum((ref_window[:,:,0:3] - curr_frame_window[:,:,0:3])**2)
+            
             
             if min_ssd==-1:
                 min_ssd = ssd
@@ -504,113 +540,214 @@ for frameIter in 1+np.arange(Nimages-1):
                 if ssd < min_ssd: 
                     min_ssd = ssd
                     most_compatable_feature_ind = compareIter
-                    
+            
+            
         # 1st column contains ref features indices 0.....107
         # 2nd column contains compatable features indices of 2nd frame
         # 3rd column contains compatable features indices of 3rd frame
         # so on....
         features_compatable_table[ref_feature_Iter,frameIter] = most_compatable_feature_ind
-
-#%%  checking for features in all frames
         
-        
-frame0 = cv2.imread(os.path.join(frames_path,frames_jump[0]))
-frame1 = cv2.imread(os.path.join(frames_path,frames_jump[1])) 
-frame2 = cv2.imread(os.path.join(frames_path,frames_jump[2]))
-frame3 = cv2.imread(os.path.join(frames_path,frames_jump[3]))
-frame4 = cv2.imread(os.path.join(frames_path,frames_jump[4]))
-frame5 = cv2.imread(os.path.join(frames_path,frames_jump[5]))
 
+#%% display features which were fitted for all the 6 frames
+    
+common_match = [8,30,36,46,75,82,89,91,98,106]
+
+for frameItr in range(Nimages):
+    
+    frame_path = os.path.join(frames_path,frames_jump[frameItr])
+    img_manual_match = cv2.imread(frame_path)
+    
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[0],frameItr])]
+    cv2.rectangle(img_manual_match, (startY, startX), (endY, endX), (0, 255, 255), 3)
+    
+    X, Y = dots_nms[frameItr][int(features_compatable_table[common_match[1],frameItr])]
+    cv2.circle(img_manual_match, (Y, X), 10, (255, 255, 255), 3)
+    
+    X, Y = dots_nms[frameItr][int(features_compatable_table[common_match[2],frameItr])]
+    cv2.circle(img_manual_match, (Y, X), 10, (255, 0, 0), 3)
+    
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[3],frameItr])]
+    cv2.rectangle(img_manual_match, (startY, startX), (endY, endX), (0, 255, 0), 3)    
+
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[4],frameItr])]
+    cv2.rectangle(img_manual_match, (startY, startX), (endY, endX), (0, 0, 255), 3)
+    
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[5],frameItr])]
+    vrx = np.array([[startY,startX-5], [startY-5,(startX+endX)/2],[startY,endX+5],[endY,endX],[endY,startX]],np.int32)
+    vrx = vrx.reshape((-1,1,2))
+    cv2.polylines(img_manual_match, [vrx], True, (255,255,255),3)
+    
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[6],frameItr])]
+    vrx = np.array([[startY,startX-5], [startY-5,(startX+endX)/2],[startY,endX+5],[endY,endX],[endY,startX]],np.int32)
+    vrx = vrx.reshape((-1,1,2))
+    cv2.polylines(img_manual_match, [vrx], True, (255,0,255),3)
+    
+    X, Y = dots_nms[frameItr][int(features_compatable_table[common_match[7],frameItr])]
+    cv2.circle(img_manual_match, (Y, X), 10, (0, 255, 255), 3)
+    
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[8],frameItr])]
+    vrx = np.array([[endY,startX], [startY,(startX+endX)/2],[endY,endX]],np.int32)
+    vrx = vrx.reshape((-1,1,2))
+    cv2.polylines(img_manual_match, [vrx], True, (0,255,255),3)
+    
+    startX, startY, endX, endY = boxes_nms[frameItr][int(features_compatable_table[common_match[9],frameItr])]
+    vrx = np.array([[startY,startX], [(startY+endY)/2,endX],[endY,startX]],np.int32)
+    vrx = vrx.reshape((-1,1,2))
+    cv2.polylines(img_manual_match, [vrx], True, (255,0,0),3)
+    
+#
+#    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
+#    plt.figure()
+#    plt.imshow(im_to_show)
+#    plt.show()
 
 #%%
 
-Iter_vec = [81,62,59,60,61,65,72,67]
-
-for Iter in Iter_vec:     
-
-
-
-    #Iter=Iter+1    
-    frame0_f = features_compatable_table[Iter,0]
-    frame1_f = features_compatable_table[Iter,1]
-    frame2_f = features_compatable_table[Iter,2]
-    frame3_f = features_compatable_table[Iter,3]
-    frame4_f = features_compatable_table[Iter,4]
-    frame5_f = features_compatable_table[Iter,5]
-    
-    # =============================================================================
-    #     if (
-    #         np.isnan(frame0_f) or np.isnan(frame1_f) or np.isnan(frame2_f) or
-    #         np.isnan(frame3_f) or np.isnan(frame4_f) or np.isnan(frame5_f)
-    #         ):
-    #         
-    #         continue
-    # =============================================================================
-    
-    fig, ( (ax1, ax2, ax3),( ax4, ax5, ax6)) = plt.subplots(2, 3)
-    ax1.imshow(frame0)
-    startX, startY, endX, endY = boxes_nms[0][int(frame0_f),:]
-    rect = patches.Rectangle((startY,startX),20,20,linewidth=1.5,edgecolor='w',facecolor='none')
-    ax1.add_patch(rect)
-    
-    ax2.imshow(frame1)
-    startX, startY, endX, endY = boxes_nms[1][int(frame1_f),:]
-    rect = patches.Rectangle((startY,startX),20,20,linewidth=1.5,edgecolor='w',facecolor='none')
-    ax2.add_patch(rect)
-    
-    ax3.imshow(frame2)
-    startX, startY, endX, endY = boxes_nms[2][int(frame2_f),:]
-    rect = patches.Rectangle((startY,startX),20,20,linewidth=1.5,edgecolor='w',facecolor='none')
-    ax3.add_patch(rect)
-    
-    ax4.imshow(frame3)
-    startX, startY, endX, endY = boxes_nms[3][int(frame3_f),:]
-    rect = patches.Rectangle((startY,startX),20,20,linewidth=1.5,edgecolor='w',facecolor='none')
-    ax4.add_patch(rect)
-    
-    ax5.imshow(frame4)
-    startX, startY, endX, endY = boxes_nms[4][int(frame4_f),:]
-    rect = patches.Rectangle((startY,startX),20,20,linewidth=1.5,edgecolor='w',facecolor='none')
-    ax5.add_patch(rect)
-    
-    ax6.imshow(frame5)
-    startX, startY, endX, endY = boxes_nms[5][int(frame5_f),:]
-    rect = patches.Rectangle((startY,startX),20,20,linewidth=1.5,edgecolor='w',facecolor='none')
-    ax6.add_patch(rect)
-    
-    fig.suptitle('feature #' + str(int(frame0_f)))
-
-#    fig.show()
-
-#%%
 # =============================================================================
-# RANSAC
+# 7. RANSAC
 # =============================================================================
-
-matched_feature_pairs = [selected_fetures_dot[0], selected_fetures_dot[1]]
+    
+def featureCoordinates(featureTableIndices, dots_nms):
+    Nimages   = len(dots_nms)
+    Nfeatures = np.shape(featureTableIndices)[0]
+    featureTableCoors = np.zeros((Nimages, Nfeatures, 2))
+    for i in range(Nimages):
+        idxs = featureTableIndices[:, i].astype('int')
+        dots = dots_nms[i][idxs]
+        featureTableCoors[i, :, :] = dots
+        
+    return featureTableCoors
+    
 def ransac(matched_feature_pairs):
-    numIter = 50
+    numIter = 100
     numPairs = np.shape(matched_feature_pairs)[1]
     inliers = list()
+    maxGroupSize = 0
+    maxIdx = 0
     for i in range(numIter):
         # Random Selection of Features
         idxs = np.random.randint(low=0, high=numPairs, size=3)
         # Geometric Transform Between Feature Pairs
-        tform = find_affine_trans_parameters(matched_feature_pairs[0, idxs, :], matched_feature_pairs[1, idxs, :])
+        tform = find_affine_trans_parameters(matched_feature_pairs[0, idxs, :].astype(np.float32), matched_feature_pairs[1, idxs, :].astype(np.float32))
+        tform = tform[0:2, :]
         # Obtain Features Using the 3-Points-Based-Transformation
-        ones = np.asarray([np.ones(np.shape(matched_feature_pairs)[1]).astype('int')])
-        current_features    = np.concatenate((matched_feature_pairs[1, :, :], ones.T), axis=1)
-        calculated_features = np.matmul(current_features, tform[0:2, :])
+        current_features    = matched_feature_pairs[1, :, :]
+        calculated_features = np.matmul(current_features, tform[:,0:2]) + tform[:,2]
         # Euclidean Distance Between Calculated and Actual Coordinates
-        dist = np.linalg.norm(matched_feature_pairs[0, :, :] - calculated_features, axis=0)
+        dist = np.linalg.norm(matched_feature_pairs[0, :, :] - calculated_features, axis=1)
         # Create Inlier Group
-        inliers = np.append(inliers, [dist < 1e-3])
+        inliers.append(np.argwhere(dist < 100))
+        currGroupSize = np.shape(inliers[int(i)])[0]
+        if currGroupSize > maxGroupSize:
+            maxGroupSize = currGroupSize
+            maxIdx = i
     
-    # Find Largest Inlier Group
-    maxIdx = np.argmax([np.shape(inliers[i]) for i in inliers])
-    maxInlier = inliers(maxIdx)
+    # Largest Inlier Group
+    maxInlier = inliers[maxIdx]
+    maxInlier = np.reshape(maxInlier, (-1,))
     # Calculate Transformation Based on Largest Inlier Group
-    final_tform = find_affine_trans_parameters(matched_feature_pairs[maxInlier, 0], matched_feature_pairs[maxInlier, 1])
+    final_tform = find_affine_trans_parameters(matched_feature_pairs[0, maxInlier, :].astype(np.float32), matched_feature_pairs[1, maxInlier, :].astype(np.float32))
 
     return final_tform
 
+#%%
+# =============================================================================
+# 8. Stabilization II
+# =============================================================================
+
+autoAffineTransform = list()
+autoFrameListAdjc   = list()
+featureTableCoors = featureCoordinates(features_compatable_table, dots_nms)
+for i in range(Nimages):
+    tform = ransac(featureTableCoors[(0, i), :, :])
+    autoAffineTransform.append(tform)
+    
+    if frameItr == 0:
+        adjacentMatrix_tmp = cv2.findHomography(featureTableCoors[0, :, :], featureTableCoors[0, :, :], cv2.RANSAC,5.0)
+    else:
+        adjacentMatrix_tmp = cv2.findHomography(featureTableCoors[i-1, :, :], featureTableCoors[i, :, :], cv2.RANSAC,5.0)
+        
+    affine_adjacentMatrix.append(adjacentMatrix_tmp)
+
+autoFrameListRef = list()
+for frameItr in np.arange(Nimages):
+    frame_path = os.path.join(frames_path,frames_jump[frameItr])
+    img = cv2.imread(frame_path)
+    
+    Mref = autoAffineTransform[frameItr]
+    dstRef = cv2.warpAffine(img, Mref[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
+    autoFrameListRef.append(dstRef)
+    
+    Madjc = MatrixCumMul(affine_adjacentMatrix, frameItr)
+    dstAdjc = cv2.warpAffine(img, Madjc[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
+    autoFrameListAdjc.append(dstAdjc)
+    
+plot_frame_list(autoFrameListRef, 0.6)
+plot_frame_list(autoFrameListAdjc, 0.6)
+#%%
+
+# =============================================================================
+# 9. Stabilization III
+# =============================================================================
+
+def buildTrajectoryMatrix(frames):
+    feature_params = dict(maxCorners=100,
+                          qualityLevel=0.3,
+                          minDistance=7,
+                          blockSize=7)
+    lk_params = dict(winSize=(15, 15),
+                     maxLevel=2,
+                     criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+    SingleChFrames = list()
+    for f in frames:
+        frame = cv2.imread(os.path.join(frames_path,f))
+        SingleChFrames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    prevPts = cv2.goodFeaturesToTrack(SingleChFrames[0], **feature_params)
+    M = np.zeros((2 * len(prevPts), len(SingleChFrames)))
+    for i in range(1, len(SingleChFrames)):
+        nextPts, _, _ = cv2.calcOpticalFlowPyrLK(SingleChFrames[i - 1], SingleChFrames[i], prevPts, nextPts=None, **lk_params)
+        M[:, i] = nextPts.flatten()
+        
+    return M
+
+def Split2Windows(trajMat, k=5):
+    subMatrices = list()
+    windowSize = np.shape(trajMat)[1] / k
+    for i in range(k):
+        subMatrices.append(trajMat[:, int(i*windowSize) : int((i+1)*windowSize)])        
+        
+    return subMatrices
+
+def obtainStabilizedMat(subMat):
+    windowSize = np.shape(subMat)[1]
+    C, _, E = np.linalg.svd(subMat, full_matrices=False)
+    E_stab = filters.gaussian_filter(E, sigma=windowSize/np.sqrt(2))
+    M_stab = np.matmul(C, E_stab)
+    
+    return M_stab
+
+#%%
+
+trajMat     = buildTrajectoryMatrix(frames)
+subMatrices = Split2Windows(trajMat)
+hMat        = list()
+for win in range(len(subMatrices)):
+    M      = subMatrices[win]
+    M_stab = obtainStabilizedMat(subMatrices[win])
+    for frame in range(np.shape(M)[1]):
+        nonStabPts = np.reshape(M[:, frame], (-1,2))
+        StabPts    = np.reshape(M_stab[:, frame], (-1,2))
+        h_tmp, _ = cv2.findHomography(StabPts, nonStabPts, cv2.RANSAC,5.0)
+        hMat.append(h_tmp)
+
+FrameList = list()
+for frameItr in range(1, len(frames)):
+    frame_path = os.path.join(frames_path,frames[frameItr])
+    img = cv2.imread(frame_path)
+    
+    tform = hMat[frameItr]
+    dst = cv2.warpPerspective(img, tform, (width, height), flags=cv2.INTER_LINEAR)
+    FrameList.append(dst)
+        
+plot_frame_list(FrameList, 0.6)
