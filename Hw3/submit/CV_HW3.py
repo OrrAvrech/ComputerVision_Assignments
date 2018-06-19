@@ -24,9 +24,12 @@ import numpy as np
 import os
 
 from matplotlib import pyplot as plt
+from matplotlib import patches as patches
+
 import pylab as pl
 
 import scipy.ndimage.filters as filters
+from sklearn.utils.extmath import randomized_svd as svd_t
 
 #%%
 
@@ -103,6 +106,18 @@ frames_jump = frames_jump [0:6]
 # =============================================================================
 # Plot Sequence Function
 # =============================================================================
+
+def saveVideo(frameList, vidName, fps):
+    video_name = vidName 
+    height, width, layers = np.shape(frameList[0])
+    
+    video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc('M','J','P','G'), fps, (width,height))
+    
+    for frame in frameList:
+        video.write(frame)
+    
+    cv2.destroyAllWindows()
+    video.release()
 
 def plot_read_sequence(frame_list, pause_time):
     plt.figure()
@@ -197,7 +212,7 @@ def from_box_to_dot(a):
     return round((a[0]+a[2])/2), round((a[1]+a[3])/2)
 #%%
 # =============================================================================
-# Detect Corners 
+# Harris Corners Detection 
 # =============================================================================
 
 Nimages = len(frames_jump)
@@ -218,13 +233,7 @@ for frameItr in range(Nimages):
     frame_path = os.path.join(frames_path,frames_jump[frameItr])
 
     img = cv2.imread(frame_path)
-    
-# =============================================================================
-#     # Padding the image for getting boxes with wanted size - not cropped
-#     BLACK = [0, 0, 0]
-#     img_pad = cv2.copyMakeBorder(img,box_dim,box_dim,box_dim,box_dim,cv2.BORDER_CONSTANT,value=BLACK)
-# =============================================================================
-    
+       
     img_harris_dots = img.copy()
     img_harris_boxes = img.copy()
     img_harris_dots_nms = img.copy()
@@ -254,17 +263,7 @@ for frameItr in range(Nimages):
     # prepering the points to non max suppression function
     boxes_size = [len(xx_harris),4]
     boxes = np.zeros(boxes_size)
-    
-# =============================================================================
-#     BEFORE PADDING WITH 0
-#     # updating boxes x,y start and end
-#     boxes[:,0] = [(ii-box_dim if ii>=box_dim else 0) for ii in xx_harris] # x_start
-#     boxes[:,1] = [(ii-box_dim if ii>=box_dim else 0) for ii in yy_harris] # y_start
-#     boxes[:,2] = [(ii+box_dim if ii<hight-box_dim else hight) for ii in xx_harris] # x_end
-#     boxes[:,3] = [(ii+box_dim if ii<width-box_dim else width) for ii in yy_harris] # y_end
-# =============================================================================
-     
-    # AFTER PADDING WITH 0
+        
     # updating boxes x,y start and end
     boxes[:,0] = [ii-box_dim for ii in xx_harris] # x_start
     boxes[:,1] = [ii-box_dim for ii in yy_harris] # y_start
@@ -293,15 +292,16 @@ for frameItr in range(Nimages):
         
     im_resized = cv2.resize(img_harris_boxes_nms, (0, 0), fx=im_show_proportion, fy=im_show_proportion)
     im_to_show = cv2.cvtColor(im_resized, cv2.COLOR_BGR2RGB)
-#    plt.figure()
-#    plt.imshow(im_to_show)
-#    plt.show()
+    plt.figure()
+    plt.imshow(im_to_show)
+    plt.title( 'Harris Corner Detection - Non max.Supression \n ' + str(frames_jump[frameItr][0:-4]))
+    plt.show()
+    plt.savefig( os.path.join(Data_dir, str(frames_jump[frameItr][0:-4]) + ' Harris and NMS.tiff'))
 
 #%%
 # =============================================================================
 # 3. Manual Matching
 # we chose features on the filmed object, not in the background 
-# maybe need to chose the background
 # =============================================================================
 
 selected_fetures_box = list()
@@ -360,10 +360,12 @@ for frameItr in range(Nimages):
     X, Y = selected_fetures_dot[frameItr][7]
     cv2.circle(img_manual_match, (Y, X), 10, (0, 255, 255), 3)
     
-#    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
-#    plt.figure()
-#    plt.imshow(im_to_show)
-#    plt.show()
+    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
+    plt.figure()
+    plt.imshow(im_to_show)
+    plt.title( 'Manual Matching Features \n ' + str(frames_jump[frameItr][0:-4]))
+    plt.show()
+    plt.savefig( os.path.join(Data_dir, str(frames_jump[frameItr][0:-4]) + ' - Manual Match.tiff'))
 
 #%%
 # =============================================================================
@@ -377,7 +379,7 @@ def find_affine_trans_parameters(img_pts_ref,img_pts_trg):
     b = np.concatenate((img_pts_ref, ones.T), axis=1)
     a = np.concatenate((img_pts_trg, ones.T), axis=1)
     
-    M ,residuals ,rank ,s = np.linalg.lstsq(a, b, rcond=None)
+    M ,residuals ,rank ,s = np.linalg.lstsq(a, b)
     M[M < 1e-10] = 0
         
     return M.T
@@ -433,8 +435,10 @@ for frameItr in np.arange(Nimages):
     dstAdjc = cv2.warpAffine(img, Madjc[0:2, :], (width, height), flags=cv2.INTER_LINEAR)
     frameListAdjc.append(dstAdjc)
 
-#plot_frame_list(frameListRef, 0.8)
-#plot_frame_list(frameListAdjc, 0.8)
+plot_frame_list(frameListRef, 0.8)
+saveVideo(frameListRef, os.path.join(Data_dir,'ManualMatchRef.avi'), 6)
+plot_frame_list(frameListAdjc, 0.8)
+saveVideo(frameListAdjc, os.path.join(Data_dir,'ManualMatchAdjc.avi'), 6)
 
 #%%
 # =============================================================================
@@ -551,7 +555,8 @@ for frameIter in 1+np.arange(Nimages-1):
 
 #%% display features which were fitted for all the 6 frames
     
-common_match = [8,30,36,46,75,82,89,91,98,106]
+common_match = [8,30,36,46,75,82,89,98,104,106]
+
 
 for frameItr in range(Nimages):
     
@@ -596,11 +601,79 @@ for frameItr in range(Nimages):
     vrx = vrx.reshape((-1,1,2))
     cv2.polylines(img_manual_match, [vrx], True, (255,0,0),3)
     
-#
-#    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
-#    plt.figure()
-#    plt.imshow(im_to_show)
-#    plt.show()
+
+    im_to_show = cv2.cvtColor(img_manual_match, cv2.COLOR_BGR2RGB)
+    plt.figure()
+    plt.imshow(im_to_show)
+    plt.title( 'Auto Matching  - Common Features \n ' + str(frames_jump[frameItr][0:-4]))
+    plt.show()
+    plt.savefig( os.path.join(Data_dir, str(frames_jump[frameItr][0:-4]) + ' - Auto Match.tiff'))
+
+
+#%% display wrong auto matching
+
+Iter = 37
+
+frame0 = plt.imread(os.path.join(frames_path,frames_jump[0]))
+frame1 = plt.imread(os.path.join(frames_path,frames_jump[1])) 
+frame2 = plt.imread(os.path.join(frames_path,frames_jump[2]))
+frame3 = plt.imread(os.path.join(frames_path,frames_jump[3]))
+frame4 = plt.imread(os.path.join(frames_path,frames_jump[4]))
+frame5 = plt.imread(os.path.join(frames_path,frames_jump[5]))
+
+frame0_f = features_compatable_table[Iter,0]
+frame1_f = features_compatable_table[Iter,1]
+frame2_f = features_compatable_table[Iter,2]
+frame3_f = features_compatable_table[Iter,3]
+frame4_f = features_compatable_table[Iter,4]
+frame5_f = features_compatable_table[Iter,5]
+
+fig, ( (ax1, ax2, ax3),( ax4, ax5, ax6)) = plt.subplots(2, 3)
+ax1.imshow(frame0)
+startX, startY, endX, endY = boxes_nms[0][int(frame0_f),:]
+rect = patches.Rectangle((startY,startX),40,40,linewidth=2.5,edgecolor='b',facecolor='none')
+ax1.add_patch(rect)
+ax1.axis('off')
+ax1.set_title('Frame #0')
+
+ax2.imshow(frame1)
+startX, startY, endX, endY = boxes_nms[1][int(frame1_f),:]
+rect = patches.Rectangle((startY,startX),40,40,linewidth=2.5,edgecolor='b',facecolor='none')
+ax2.add_patch(rect)
+ax2.axis('off')
+ax2.set_title('Frame #30')
+
+ax3.imshow(frame2)
+startX, startY, endX, endY = boxes_nms[2][int(frame2_f),:]
+rect = patches.Rectangle((startY,startX),40,40,linewidth=2.5,edgecolor='b',facecolor='none')
+ax3.add_patch(rect)
+ax3.axis('off')
+ax3.set_title('Frame #60')
+
+ax4.imshow(frame3)
+startX, startY, endX, endY = boxes_nms[3][int(frame3_f),:]
+rect = patches.Rectangle((startY,startX),40,40,linewidth=2.55,edgecolor='b',facecolor='none')
+ax4.add_patch(rect)
+ax4.axis('off')
+ax4.set_title('Frame #90')
+
+ax5.imshow(frame4)
+startX, startY, endX, endY = boxes_nms[4][int(frame4_f),:]
+rect = patches.Rectangle((startY,startX),40,40,linewidth=2.5,edgecolor='b',facecolor='none')
+ax5.add_patch(rect)
+ax5.axis('off')
+ax5.set_title('Frame #120')
+
+ax6.imshow(frame5)
+startX, startY, endX, endY = boxes_nms[5][int(frame5_f),:]
+rect = patches.Rectangle((startY,startX),40,40,linewidth=2.5,edgecolor='b',facecolor='none')
+ax6.add_patch(rect)
+ax6.axis('off')
+ax6.set_title('Frame #150')
+
+fig.show()
+fig.suptitle('Wrong Detection')
+plt.savefig( os.path.join(Data_dir, 'Wrong Auto Match.tiff'))
 
 #%%
 
@@ -684,7 +757,10 @@ for frameItr in np.arange(Nimages):
     autoFrameListAdjc.append(dstAdjc)
     
 plot_frame_list(autoFrameListRef, 0.6)
+saveVideo(autoFrameListRef, os.path.join(Data_dir,'AutoMatchRef.avi'), 6)
 plot_frame_list(autoFrameListAdjc, 0.6)
+saveVideo(autoFrameListAdjc, os.path.join(Data_dir,'AutoMatchAdjc.avi'), 6)
+
 #%%
 
 # =============================================================================
@@ -718,13 +794,13 @@ def Split2Windows(trajMat, k=5):
         subMatrices.append(trajMat[:, int(i*windowSize) : int((i+1)*windowSize)])        
         
     return subMatrices
-
-def obtainStabilizedMat(subMat):
-    windowSize = np.shape(subMat)[1]
-    C, _, E = np.linalg.svd(subMat, full_matrices=False)
-    E_stab = filters.gaussian_filter(E, sigma=windowSize/np.sqrt(2))
-    M_stab = np.matmul(C, E_stab)
     
+def obtainStabilizedMat(subMat, r=9):
+    u, s, vh = svd_t(subMat, n_components=r)
+    C = np.matmul(u, np.diag(s))
+    E = vh
+    E_stab = filters.gaussian_filter(E, sigma=2e-3)
+    M_stab = np.dot(C, E_stab)
     return M_stab
 
 #%%
@@ -750,4 +826,10 @@ for frameItr in range(1, len(frames)):
     dst = cv2.warpPerspective(img, tform, (width, height), flags=cv2.INTER_LINEAR)
     FrameList.append(dst)
         
-plot_frame_list(FrameList, 0.6)
+#%% Plot Entire Video
+        
+#==============================================================================
+# Stabilization III Video
+#==============================================================================
+plot_frame_list(FrameList, 0.05)
+saveVideo(FrameList, os.path.join(Data_dir,'stab3.avi'), 25)

@@ -10,12 +10,12 @@
 *.jpeg
 *.png
 __pycache__/
-graphs/
-checkpoints/
 Data/
 data/
 Docs/
+Results/
 *.ckpt
 *.zip
 *.docx
 *.mp4
+*.avi
