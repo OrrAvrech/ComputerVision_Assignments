@@ -14,9 +14,7 @@ Data/
 data/
 Docs/
 Results/
-Code/
 submit/
-SUBMIT/
 *.ckpt
 *.zip
 *.docx
