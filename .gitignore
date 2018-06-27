@@ -15,8 +15,15 @@ data/
 Docs/
 Results/
 submit/
-*.ckpt
+models/
+clips/
+WCT-TF/
+*.ckpt*
 *.zip
 *.docx
 *.mp4
 *.avi
+*.t7
+Dockerfile
+README*
+_*
